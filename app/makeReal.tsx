@@ -9,9 +9,9 @@ import {
 } from './lib/fetchFromOpenAi'
 
 // the system prompt explains to gpt-4 what we want it to do and how it should behave.
-const systemPrompt = `You are an expert web developer who specializes in tailwind css.
+const systemPrompt = `You are an expert web developer who specializes in Salesforce Lightning Web Component development.
 A user will provide you with a low-fidelity wireframe of an application. 
-You will return a single html file that uses HTML, tailwind css, and JavaScript to create a high fidelity website.
+You will return a single html file that uses HTML and Lightning Web Components to create a high fidelity website.  You will use the following web site as a reference for base Lightning Web Components, and configure the base components by their attributes: https://developer.salesforce.com/docs/component-library/overview/components.
 Include any extra CSS and JavaScript in the html file.
 If you have any images, load them from Unsplash or use solid colored rectangles.
 The user will provide you with notes in blue or red text, arrows, or drawings.
@@ -26,6 +26,7 @@ Use JavaScript modules and unpkg to import any necessary dependencies.
 Respond ONLY with the contents of the html file.`
 
 export async function makeReal(editor: Editor) {
+    console.log('in make real');
 	// we can't make anything real if there's nothing selected
 	const selectedShapes = editor.getSelectedShapes()
 	if (selectedShapes.length === 0) {
@@ -57,7 +58,7 @@ export async function makeReal(editor: Editor) {
 		})
 
 		// populate the response shape with the html we got back from openai.
-		populateResponseShape(editor, responseShapeId, openAiResponse)
+		populateResponseShape(editor, responseShapeId, openAiResponse);
 	} catch (e) {
 		// if something went wrong, get rid of the unnecessary response shape
 		editor.deleteShape(responseShapeId)
@@ -79,7 +80,7 @@ async function buildPromptForOpenAi(editor: Editor): Promise<GPT4VMessage[]> {
 		},
 		{
 			type: 'text',
-			text: 'Turn this into a single html file using tailwind.',
+			text: 'Turn this into a single html lightning web components.',
 		},
 		{
 			// send the text of all selected shapes, so that GPT can use it as a reference (if anything is hard to see)
@@ -111,9 +112,11 @@ function populateResponseShape(
 	openAiResponse: GPT4VCompletionResponse
 ) {
 	if (openAiResponse.error) {
+               console.log('An error has occurred: ' + openAiResponse.error.message);
 		throw new Error(openAiResponse.error.message)
 	}
 
+console.log('success: ' + openAiResponse.choices[0].message.content);
 	// extract the html from the response
 	const message = openAiResponse.choices[0].message.content
 	const start = message.indexOf('<!DOCTYPE html>')
